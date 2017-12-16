@@ -58,11 +58,11 @@ class NerDataset(Dataset):
             line[0], line[1] = line[0].strip(), line[1].lower().strip()
             if line[1] == "\u200f":
                 continue
-            if line[1] not in tags:
-                tags[line[1]] = len(tags)
-            if line[0] in puncs:
+            if line[0] in puncs or line[0] == "":
                 result.append(acc)
                 acc = []
             else:
                 acc.append((line[0], line[1]))
+            if line[1] not in tags:
+                tags[line[1]] = len(tags)
         return result, tags
