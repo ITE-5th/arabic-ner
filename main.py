@@ -45,14 +45,29 @@ if __name__ == '__main__':
     # there is \u200f tag in the data -____-
     tags.remove("\u200f")
     tags = list(tags)
+    iterations = 20
     nlp = spacy.blank("xx")
-    optimizer = nlp.begin_training()
     print("Begin Training")
-    for i in range(20):
-        random.shuffle(train_data)
-        losses = {}
-        for text, annotations in train_data:
-            nlp.update([text], [annotations], drop=0.5, sgd=optimizer, losses=losses)
-        print("Epoch Finished")
-        print("losses = {}".format(losses))
+    other_pipes = [pipe for pipe in nlp.pipe_names if pipe != 'ner']
+    with nlp.disable_pipes(*other_pipes):  # only train NER
+        optimizer = nlp.begin_training()
+        for itn in range(iterations):
+            random.shuffle(train_data)
+            losses = {}
+            for text, annotations in train_data:
+                nlp.update(
+                    [text],  # batch of texts
+                    [annotations],  # batch of annotations
+                    drop=0.5,  # dropout - make it harder to memorise data
+                    sgd=optimizer,  # callable to update weights
+                    losses=losses)
+            print(losses)
+            print("epoch finished")
+
     nlp.to_disk('./model')
+    nlp = spacy.load("./model")
+    ner = nlp.get_pipe("ner")
+    test = "أعلن أحمد من لبنان."
+    doc = nlp(test)
+    for ent in doc.ents:
+        print(ent.label_, ent.text)
