@@ -1,3 +1,8 @@
+import random
+
+import spacy
+
+
 def to_sentences(lines):
     puncs = set(".?!")
     result = []
@@ -29,9 +34,9 @@ def read(file_path: str):
             old_offset = offset
             offset += len(sentences[i][j][0]) + 1
             if sentences[i][j][1] != "o":
-                ner.append((sentences[i][j][1], old_offset, offset - 2))
+                ner.append((old_offset, offset - 2, sentences[i][j][1]))
         acc = acc.strip()
-        result.append((acc, ner))
+        result.append((acc, {"entities": ner}))
     return result, tags
 
 
@@ -40,4 +45,14 @@ if __name__ == '__main__':
     # there is \u200f tag in the data -____-
     tags.remove("\u200f")
     tags = list(tags)
-    print(tags)
+    nlp = spacy.blank("xx")
+    optimizer = nlp.begin_training()
+    print("Begin Training")
+    for i in range(20):
+        random.shuffle(train_data)
+        losses = {}
+        for text, annotations in train_data:
+            nlp.update([text], [annotations], drop=0.5, sgd=optimizer, losses=losses)
+        print("Epoch Finished")
+        print("losses = {}".format(losses))
+    nlp.to_disk('./model')
