@@ -104,7 +104,7 @@ class BiLSTMWithCRF(Module):
         return score
 
     def crf_forward(self, y):
-        score = torch.FloatTensor(self.batch_size, self.tagset_size).fill_(-10000.).cuda()
+        score = torch.FloatTensor(self.batch_size, self.tags_size).fill_(-10000.).cuda()
         score[:, SOS_INDEX] = 0.
         score = Variable(score)
         for b in range(len(self.lengths)):
