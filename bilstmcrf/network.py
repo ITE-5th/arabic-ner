@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torch.nn import Module
 
-from net.util import *
+from bilstmcrf.util import *
 
 
 def to_scalar(var):

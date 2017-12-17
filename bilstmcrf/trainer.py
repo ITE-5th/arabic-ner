@@ -2,8 +2,8 @@ from gensim.models import FastText
 from torch.cuda import manual_seed
 from torch.optim import Adam
 
-from net.network import *
-from net.util import *
+from bilstmcrf.network import *
+from bilstmcrf.util import *
 
 
 def load_data(root_dir: str):
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     fasttext = FastText.load("../data/wiki.ar.gensim")
     embeds = load_words_embed(fasttext, vocab)
     net = BiLSTMWithCRF(len(vocab), tags, 300, 8, preinit_embedding=embeds)
-    # net = net.cuda()
+    # bilstmcrf = bilstmcrf.cuda()
     opt = Adam(net.parameters(), lr=0.01, weight_decay=1e-3)
     print("Begin training")
     for epoch in range(epochs):

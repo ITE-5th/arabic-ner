@@ -1,7 +1,7 @@
 import torch
 from torch.utils.data import Dataset
 
-from net.util import PADDING_INDEX, EOS_INDEX, SOS_INDEX
+from bilstmcrf.util import PADDING_INDEX, EOS_INDEX, SOS_INDEX
 
 
 class NerDataset(Dataset):
@@ -51,7 +51,7 @@ class NerDataset(Dataset):
 
     def to_sentences(self, lines):
         lines = [line.strip() for line in lines]
-        puncs = set(".?!")
+        puncs = set(".?!-")
         result = []
         acc = []
         tags = {"PAD": PADDING_INDEX, "EOS": EOS_INDEX, "SOS": SOS_INDEX}
