@@ -1,29 +1,44 @@
+from net.util import *
 
 
-
-# def read(file_path: str):
-#     with open(file_path) as f:
-#         lines = f.readlines()
-#     sentences, tags = to_sentences(lines)
-#     result = []
-#     for i in range(len(sentences)):
-#         offset = 0
-#         acc = ""
-#         ner = []
-#         for j in range(len(sentences[i])):
-#             acc += sentences[i][j][0] + " "
-#             old_offset = offset
-#             offset += len(sentences[i][j][0]) + 1
-#             if sentences[i][j][1] != "o":
-#                 ner.append((old_offset, offset - 2, sentences[i][j][1]))
-#         acc = acc.strip()
-#         result.append((acc, {"entities": ner}))
-#     return result, tags
+def to_sentences(lines):
+    lines = [line.strip() for line in lines]
+    puncs = set(".?!")
+    result = []
+    acc = []
+    tags = {"PAD": PADDING_INDEX, "EOS": EOS_INDEX, "SOS": SOS_INDEX}
+    for line in lines:
+        line = line.split(" ")
+        line[0], line[1] = line[0].strip(), line[1].lower().strip()
+        if line[1] == "\u200f":
+            continue
+        if line[0] in puncs or line[0] == "":
+            if acc:
+                result.append(acc)
+            acc = []
+        else:
+            acc.append((line[0], line[1]))
+        if line[1] not in tags:
+            tags[line[1]] = len(tags)
+    return result, tags
 
 
 if __name__ == '__main__':
-    pass
-
+    with open("data/ANERCorp") as f:
+        lines = f.readlines()
+    sentences, _ = to_sentences(lines)
+    vcs, tgs = [], []
+    for i in range(len(sentences)):
+        temp1, temp2 = [], []
+        for j in range(len(sentences[i])):
+            temp1.append(sentences[i][j][0])
+            temp2.append(sentences[i][j][1])
+        vcs.append(temp1)
+        tgs.append(temp2)
+    with open("data/sents.txt", "w") as f:
+        f.write("\n".join([" ".join(sent) for sent in vcs]))
+    with open("data/tags.txt", "w") as f:
+        f.write("\n".join([" ".join(tag) for tag in tgs]))
 
 # def spacy_train():
 #     iterations = 20
