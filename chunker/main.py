@@ -43,11 +43,11 @@ def read(file_path: str, delimiters: str = ".?!", from_index: int = None, to_ind
     with open(file_path) as f:
         lines = f.readlines()
 
-    if from_index is not None:
-        lines = lines[from_index:]
-
     if to_index is not None:
         lines = lines[:to_index]
+
+    if from_index is not None:
+        lines = lines[from_index:]
 
     return to_sentences(lines, delimiters)
 
@@ -126,7 +126,7 @@ def load_stanford_tagger():
 
 if __name__ == "__main__":
     # read sentences
-    sents = read("../data/ANERCorp", to_index=4000)
+    sents = read("../data/ANERCorp", from_index=149000)
 
     pos_tagger = load_stanford_tagger()
 
