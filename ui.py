@@ -11,10 +11,10 @@ from lmbilstmcrf.predictor import predict_wc
 
 
 class Ui_MainWindow(QWidget):
-    loc_color = "#FF0000"
-    per_color = "#00FF00"
-    org_color = "#0000FF"
-    misc_color = "#000000"
+    loc_color = "#9ac6c5"
+    per_color = "#7785ac"
+    org_color = "#5b2a86"
+    misc_color = "#a5e6ba"
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -93,7 +93,6 @@ class Ui_MainWindow(QWidget):
         features = utils.read_features(text)
         result = self.predictor.output_batch_str(self.model, features)
         result = self.process_result(result)
-        print(result)
         self.annotatedText.setText(result)
 
     def prepare_text(self, text):
@@ -104,7 +103,7 @@ class Ui_MainWindow(QWidget):
     def process_result(self, text):
         temp = r"<span style='color:{};'>\1</span>"
         text = re.sub(r"<LOC>(.+)</LOC>", temp.format(Ui_MainWindow.loc_color), text)
-        text = re.sub(r"<PER>(.+)</PER>", temp.format(Ui_MainWindow.per_color), text)
+        text = re.sub(r"<PERS>(.+)</PERS>", temp.format(Ui_MainWindow.per_color), text)
         text = re.sub(r"<ORG>(.+)</ORG>", temp.format(Ui_MainWindow.org_color), text)
         text = re.sub(r"<MISC>(.+)</MISC>", temp.format(Ui_MainWindow.misc_color), text)
         return text
