@@ -1,9 +1,13 @@
-import os
-
 import nltk
 
 from chunker.chunkers.consecutive_np_chunker import ConsecutiveNPChunker
-from chunker.features_extractors.npchunk_extractor import NPChunkExtractor
+from chunker.features_extractors.composer import Composer
+from chunker.features_extractors.locations import Locations
+from chunker.features_extractors.npchunk import NPChunk
+from chunker.features_extractors.organizations import Organizations
+from chunker.features_extractors.people import People
+from chunker.features_extractors.stop_words import StopWords
+from chunker.taggers.pos_tagger import PosTagger
 
 
 def to_sentences(lines, delimiters: str = ".?!"):
@@ -52,86 +56,39 @@ def read(file_path: str, delimiters: str = ".?!", from_index: int = None, to_ind
     return to_sentences(lines, delimiters)
 
 
-def convert_from_boi_to_sent(sent):
-    """
-    convert from BOI to sentence
-
-    :param sent: the sentence
-    :return:
-    """
-    untagged_sent = ""
-    # remove BOI tags and make sentence to tag
-    for word, _ in sent:
-        untagged_sent += " " + word
-
-    return untagged_sent
-
-
-def pos_tag_sent(sent, pos_tagger):
-    """
-    Tag sentence
-    convert sentence from BOI-form to String-form and tag it using the provided tagger
-    :param sent: boi sentence
-    :param pos_tagger: tagger to tag the sentence
-    :return:
-    """
-    untagged_sent = convert_from_boi_to_sent(sent)
-
-    pos_tagged_sent = pos_tagger.tag(nltk.regexp_tokenize(untagged_sent, pattern=" ", gaps=True))
-
-    result = []
-    for i, (_, word) in enumerate(pos_tagged_sent):
-        result.append((tuple(word.split('/')), sent[i][1]))
-
-    return result
-
-
-def tag(sents, pos_tagger):
-    """
-    tag each sentence in sentences using pos_tag_sent
-    :param sents: list of sentences
-    :param pos_tagger: the tagger
-    :return:
-    """
-    pos_tagged_sents = []
-    for sent in sents:
-        pos_tagged_sents.append(pos_tag_sent(sent, pos_tagger))
-
-    return pos_tagged_sents
-
-
 def split_data(tagged_data, ratio: float = 0.8):
     length = len(tagged_data)
     train_sents = tagged_data[:int(length * ratio)]
     test_sents = tagged_data[len(train_sents):]
-
-    sents = []
-    for test_sent in test_sents:
-        sents.extend([[(w, t, c) for ((w, t), c) in test_sent]])
-        sents[-1] = nltk.chunk.conlltags2tree(sents[-1])
-
-    test_sents = sents
-
     return train_sents, test_sents
 
 
-def load_stanford_tagger():
-    # support for stanford-tagger
-    base_path = os.path.dirname(os.path.realpath(__file__)) + "/taggers/stanford-postagger/"
-    path_to_model = base_path + "/models/arabic.tagger"
-    path_to_jar = base_path + "stanford-postagger.jar"
+def convert_to_tree(data):
+    sents = []
+    try:
+        for datum in data:
+            sents.extend([[(w, t, c) for ((w, t), c) in datum]])
+            sents[-1] = nltk.chunk.conlltags2tree(sents[-1])
+    except:
+        print(datum)
 
-    return nltk.StanfordPOSTagger(path_to_model, path_to_jar, encoding='utf-8')
+    return sents
 
 
 if __name__ == "__main__":
     # read sentences
-    sents = read("../data/ANERCorp", from_index=149000)
+    # sents = read("../data/ANERCorp", from_index=2000, to_index=4000)
+    sents = read("../data/modified_ANERCorp", to_index=10000)
+    # sents = read("../data/ANERCorp", from_index=2000)
 
-    pos_tagger = load_stanford_tagger()
+    pos_tagger = PosTagger()
 
-    tagged_data = tag(sents, pos_tagger)
+    tagged_data = pos_tagger.tag(sents)
     train_sents, test_sents = split_data(tagged_data)
 
-    chunker = ConsecutiveNPChunker(train_sents=train_sents, extractor=NPChunkExtractor())
-    print(chunker.evaluate(test_sents))
+    tree = convert_to_tree(test_sents)
+    # output[1].draw()
+
+    composer = Composer([NPChunk(), Locations(), People(), Organizations(), StopWords()])
+    chunker = ConsecutiveNPChunker(train_sents=train_sents, extractor=composer)
+    print(chunker.evaluate(tree))

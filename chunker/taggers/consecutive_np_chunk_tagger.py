@@ -3,11 +3,11 @@ import os
 import nltk
 
 from chunker.features_extractors.feature_extractor import FeatureExtractor
-from chunker.features_extractors.npchunk_extractor import NPChunkExtractor
+from chunker.features_extractors.npchunk import NPChunk
 
 
 class ConsecutiveNPChunkTagger(nltk.TaggerI):
-    def __init__(self, train_sents, extractor: FeatureExtractor = NPChunkExtractor(), megam_path: str = None):
+    def __init__(self, train_sents, extractor: FeatureExtractor = NPChunk(), megam_path: str = None):
         train_set = []
         self.feature_extractor = extractor
 
