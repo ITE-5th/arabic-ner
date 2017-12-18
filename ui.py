@@ -1,4 +1,5 @@
 import json
+import re
 
 import torch
 from PyQt5 import QtCore, QtWidgets
@@ -10,6 +11,11 @@ from lmbilstmcrf.predictor import predict_wc
 
 
 class Ui_MainWindow(QWidget):
+    loc_color = "#FF0000"
+    per_color = "#00FF00"
+    org_color = "#0000FF"
+    misc_color = "#000000"
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(598, 384)
@@ -86,7 +92,8 @@ class Ui_MainWindow(QWidget):
         text = text.split("\n")
         features = utils.read_features(text)
         result = self.predictor.output_batch_str(self.model, features)
-        result = self.prepare_text(result)
+        result = self.process_result(result)
+        print(result)
         self.annotatedText.setText(result)
 
     def prepare_text(self, text):
@@ -95,4 +102,9 @@ class Ui_MainWindow(QWidget):
         return result
 
     def process_result(self, text):
+        temp = r"<span style='color:{};'>\1</span>"
+        text = re.sub(r"<LOC>(.+)</LOC>", temp.format(Ui_MainWindow.loc_color), text)
+        text = re.sub(r"<PER>(.+)</PER>", temp.format(Ui_MainWindow.per_color), text)
+        text = re.sub(r"<ORG>(.+)</ORG>", temp.format(Ui_MainWindow.org_color), text)
+        text = re.sub(r"<MISC>(.+)</MISC>", temp.format(Ui_MainWindow.misc_color), text)
         return text
