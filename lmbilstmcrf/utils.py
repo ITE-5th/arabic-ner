@@ -1,10 +1,3 @@
-"""
-.. module:: utils
-    :synopsis: utility tools
- 
-.. moduleauthor:: Liyuan Liu, Frank Xu
-"""
-
 import itertools
 import json
 from functools import reduce
@@ -20,28 +13,15 @@ zip = getattr(itertools, 'izip', zip)
 
 
 def to_scalar(var):
-    """change the first element of a tensor to scalar
-    """
     return var.view(-1).data.tolist()[0]
 
 
 def argmax(vec):
-    """helper function to calculate argmax of input vector at dimension 1
-    """
     _, idx = torch.max(vec, 1)
     return to_scalar(idx)
 
 
 def log_sum_exp(vec, m_size):
-    """
-    calculate log of exp sum
-
-    args:
-        vec (batch_size, vanishing_dim, hidden_dim) : input tensor
-        m_size : hidden_dim
-    return:
-        batch_size, hidden_dim
-    """
     _, idx = torch.max(vec, 1)  # B * 1 * M
     max_score = torch.gather(vec, 1, idx.view(-1, 1, m_size)).view(-1, 1, m_size)  # B * M
 
@@ -50,87 +30,39 @@ def log_sum_exp(vec, m_size):
 
 
 def switch(vec1, vec2, mask):
-    """
-    switch function for pytorch
-
-    args:
-        vec1 (any size) : input tensor corresponding to 0
-        vec2 (same to vec1) : input tensor corresponding to 1
-        mask (same to vec1) : input tensor, each element equals to 0/1
-    return:
-        vec (*)
-    """
     catvec = torch.cat([vec1.view(-1, 1), vec2.view(-1, 1)], dim=1)
     switched_vec = torch.gather(catvec, 1, mask.long().view(-1, 1))
     return switched_vec.view(-1)
 
 
 def encode2char_safe(input_lines, char_dict):
-    """
-    get char representation of lines
-
-    args:
-        input_lines (list of strings) : input corpus
-        char_dict (dictionary) : char-level dictionary
-    return:
-        forw_lines
-    """
     unk = char_dict['<u>']
     forw_lines = [list(map(lambda m: list(map(lambda t: char_dict.get(t, unk), m)), line)) for line in input_lines]
     return forw_lines
 
 
 def concatChar(input_lines, char_dict):
-    """
-    concat char into string
-
-    args:
-        input_lines (list of list of char) : input corpus
-        char_dict (dictionary) : char-level dictionary
-    return:
-        forw_lines
-    """
     features = [[char_dict[' ']] + list(reduce(lambda x, y: x + [char_dict[' ']] + y, sentence)) + [char_dict['\n']] for
                 sentence in input_lines]
     return features
 
 
 def encode_safe(input_lines, word_dict, unk):
-    """
-    encode list of strings into word-level representation with unk
-    """
     lines = list(map(lambda t: list(map(lambda m: word_dict.get(m, unk), t)), input_lines))
     return lines
 
 
 def encode(input_lines, word_dict):
-    """
-    encode list of strings into word-level representation
-    """
     lines = list(map(lambda t: list(map(lambda m: word_dict[m], t)), input_lines))
     return lines
 
 
 def encode2Tensor(input_lines, word_dict, unk):
-    """
-    encode list of strings into word-level representation (tensor) with unk
-    """
     lines = list(map(lambda t: torch.LongTensor(list(map(lambda m: word_dict.get(m, unk), t))), input_lines))
     return lines
 
 
 def generate_corpus_char(lines, if_shrink_c_feature=False, c_thresholds=1, if_shrink_w_feature=False, w_thresholds=1):
-    """
-    generate label, feature, word dictionary, char dictionary and label dictionary
-
-    args:
-        lines : corpus
-        if_shrink_c_feature: whether shrink char-dictionary
-        c_threshold: threshold for shrinking char-dictionary
-        if_shrink_w_feature: whether shrink word-dictionary
-        w_threshold: threshold for shrinking word-dictionary
-        
-    """
     features, labels, feature_map, label_map = generate_corpus(lines, if_shrink_feature=if_shrink_w_feature,
                                                                thresholds=w_thresholds)
     char_count = dict()
@@ -153,9 +85,6 @@ def generate_corpus_char(lines, if_shrink_c_feature=False, c_thresholds=1, if_sh
 
 
 def shrink_features(feature_map, features, thresholds):
-    """
-    filter un-common features by threshold
-    """
     feature_count = {k: 0 for (k, v) in iter(feature_map.items())}
     for feature_list in features:
         for feature in feature_list:
@@ -171,15 +100,6 @@ def shrink_features(feature_map, features, thresholds):
 
 
 def generate_corpus(lines, if_shrink_feature=False, thresholds=1):
-    """
-    generate label, feature, word dictionary and label dictionary
-
-    args:
-        lines : corpus
-        if_shrink_feature: whether shrink word-dictionary
-        threshold: threshold for shrinking word-dictionary
-        
-    """
     features = list()
     labels = list()
     tmp_fl = list()
@@ -217,9 +137,6 @@ def generate_corpus(lines, if_shrink_feature=False, thresholds=1):
 
 
 def read_corpus(lines):
-    """
-    convert corpus into features and labels
-    """
     features = list()
     labels = list()
     tmp_fl = list()
@@ -242,9 +159,6 @@ def read_corpus(lines):
 
 
 def read_features(lines, multi_docs=True):
-    """
-    convert un-annotated corpus into features
-    """
     if multi_docs:
         documents = list()
         features = list()
@@ -283,9 +197,6 @@ def read_features(lines, multi_docs=True):
 
 
 def shrink_embedding(feature_map, word_dict, word_embedding, caseless):
-    """
-    shrink embedding dictionary to in-doc words only
-    """
     if caseless:
         feature_map = set([k.lower() for k in feature_map.keys()])
     new_word_list = [k for k in word_dict.keys() if (k in feature_map)]
@@ -296,9 +207,6 @@ def shrink_embedding(feature_map, word_dict, word_embedding, caseless):
 
 
 def encode_corpus(lines, f_map, l_map, if_lower=False):
-    """
-    encode corpus into features and labels
-    """
     tmp_fl = []
     tmp_ll = []
     features = []
@@ -324,9 +232,6 @@ def encode_corpus(lines, f_map, l_map, if_lower=False):
 
 
 def encode_corpus_c(lines, f_map, l_map, c_map):
-    """
-    encode corpus into features (both word-level and char-level) and labels
-    """
     tmp_fl = []
     tmp_ll = []
     features = []
@@ -352,9 +257,6 @@ def encode_corpus_c(lines, f_map, l_map, c_map):
 
 
 def load_embedding(emb_file, delimiter, feature_map, caseless, unk, shrink_to_train=False):
-    """
-    load embedding
-    """
     if caseless:
         feature_set = set([key.lower() for key in feature_map])
     else:
@@ -394,20 +296,6 @@ def load_embedding(emb_file, delimiter, feature_map, caseless, unk, shrink_to_tr
 
 def load_embedding_wlm(emb_file, delimiter, feature_map, full_feature_set, caseless, unk, emb_len,
                        shrink_to_train=False, shrink_to_corpus=False):
-    """
-    load embedding, indoc words would be listed before outdoc words
-
-    args: 
-        emb_file: path to embedding file
-        delimiter: delimiter of lines
-        feature_map: word dictionary
-        full_feature_set: all words in the corpus
-        caseless: convert into casesless style
-        unk: string for unknown token
-        emb_len: dimension of embedding vectors
-        shrink_to_train: whether to shrink out-of-training set or not
-        shrink_to_corpus: whether to shrink out-of-corpus or not
-    """
     if caseless:
         feature_set = set([key.lower() for key in feature_map])
         full_feature_set = set([key.lower() for key in full_feature_set])
@@ -468,9 +356,6 @@ def load_embedding_wlm(emb_file, delimiter, feature_map, full_feature_set, casel
 
 
 def calc_threshold_mean(features):
-    """
-    calculate the threshold for bucket by mean
-    """
     lines_len = list(map(lambda t: len(t) + 1, features))
     average = int(sum(lines_len) / len(lines_len))
     lower_line = list(filter(lambda t: t < average, lines_len))
@@ -482,9 +367,6 @@ def calc_threshold_mean(features):
 
 
 def construct_bucket_mean_gd(input_features, input_label, word_dict, label_dict):
-    """
-    Construct bucket by mean for greedy decode, word-level only
-    """
     # encode and padding
     features = encode_safe(input_features, word_dict, word_dict['<unk>'])
     labels = encode(input_label, label_dict)
@@ -496,9 +378,6 @@ def construct_bucket_mean_gd(input_features, input_label, word_dict, label_dict)
 
 
 def construct_bucket_mean_vb(input_features, input_label, word_dict, label_dict, caseless):
-    """
-    Construct bucket by mean for viterbi decode, word-level only
-    """
     # encode and padding
     if caseless:
         input_features = list(map(lambda t: list(map(lambda x: x.lower(), t)), input_features))
@@ -513,9 +392,6 @@ def construct_bucket_mean_vb(input_features, input_label, word_dict, label_dict,
 
 
 def construct_bucket_mean_vb_wc(word_features, input_label, label_dict, char_dict, word_dict, caseless):
-    """
-    Construct bucket by mean for viterbi decode, word-level and char-level
-    """
     # encode and padding
     char_features = encode2char_safe(word_features, char_dict)
     fea_len = [list(map(lambda t: len(t) + 1, f)) for f in char_features]
@@ -536,9 +412,6 @@ def construct_bucket_mean_vb_wc(word_features, input_label, label_dict, char_dic
 
 def construct_bucket_vb_wc(word_features, forw_features, fea_len, input_labels, thresholds, pad_word_feature,
                            pad_char_feature, pad_label, label_size):
-    """
-    Construct bucket by thresholds for viterbi decode, word-level and char-level
-    """
     # construct corpus for language model pre-training
     forw_corpus = [pad_char_feature] + list(reduce(lambda x, y: x + [pad_char_feature] + y, forw_features)) + [
         pad_char_feature]
@@ -592,9 +465,6 @@ def construct_bucket_vb_wc(word_features, forw_features, fea_len, input_labels, 
 
 
 def construct_bucket_vb(input_features, input_labels, thresholds, pad_feature, pad_label, label_size):
-    """
-    Construct bucket by thresholds for viterbi decode, word-level only
-    """
     buckets = [[[], [], []] for _ in range(len(thresholds))]
     for feature, label in zip(input_features, input_labels):
         cur_len = len(feature)
@@ -613,9 +483,6 @@ def construct_bucket_vb(input_features, input_labels, thresholds, pad_feature, p
 
 
 def construct_bucket_gd(input_features, input_labels, thresholds, pad_feature, pad_label):
-    """
-    Construct bucket by thresholds for greedy decode, word-level only
-    """
     buckets = [[[], [], []] for ind in range(len(thresholds))]
     for feature, label in zip(input_features, input_labels):
         cur_len = len(feature)
@@ -632,9 +499,6 @@ def construct_bucket_gd(input_features, input_labels, thresholds, pad_feature, p
 
 
 def find_length_from_feats(feats, feat_to_ix):
-    """
-    find length of unpadded features based on feature
-    """
     end_position = len(feats) - 1
     for position, feat in enumerate(feats):
         if feat.data[0] == feat_to_ix['<eof>']:
@@ -644,9 +508,6 @@ def find_length_from_feats(feats, feat_to_ix):
 
 
 def find_length_from_labels(labels, label_to_ix):
-    """
-    find length of unpadded features based on labels
-    """
     end_position = len(labels) - 1
     for position, label in enumerate(labels):
         if label == label_to_ix['<pad>']:
@@ -661,9 +522,6 @@ def revlut(lut):
 
 # Turn a sequence of IOB chunks into single tokens
 def iob_to_spans(sequence, lut, strict_iob2=False):
-    """
-    convert to iob to span
-    """
     iobtype = 2 if strict_iob2 else 1
     chunks = []
     current = None
@@ -707,9 +565,6 @@ def iob_to_spans(sequence, lut, strict_iob2=False):
 
 # Turn a sequence of IOBES chunks into single tokens
 def iobes_to_spans(sequence, lut, strict_iob2=False):
-    """
-    convert to iobes to span
-    """
     iobtype = 2 if strict_iob2 else 1
     chunks = []
     current = None
@@ -782,9 +637,6 @@ def iobes_to_spans(sequence, lut, strict_iob2=False):
 
 
 def fill_y(nc, yidx):
-    """
-    fill y to dense matrix
-    """
     batchsz = yidx.shape[0]
     siglen = yidx.shape[1]
     dense = np.zeros((batchsz, siglen, nc), dtype=np.int)
@@ -798,34 +650,22 @@ def fill_y(nc, yidx):
 
 
 def save_checkpoint(state, track_list, filename):
-    """
-    save checkpoint
-    """
     with open(filename + '.json', 'w') as f:
         json.dump(track_list, f)
     torch.save(state, filename + '.model')
 
 
 def adjust_learning_rate(optimizer, lr):
-    """
-    shrink learning rate for pytorch
-    """
     for param_group in optimizer.param_groups:
         param_group['lr'] = lr
 
 
 def init_embedding(input_embedding):
-    """
-    Initialize embedding
-    """
     bias = np.sqrt(3.0 / input_embedding.size(1))
     nn.init.uniform(input_embedding, -bias, bias)
 
 
 def init_linear(input_linear):
-    """
-    Initialize linear transformation
-    """
     bias = np.sqrt(6.0 / (input_linear.weight.size(0) + input_linear.weight.size(1)))
     nn.init.uniform(input_linear.weight, -bias, bias)
     if input_linear.bias is not None:
@@ -833,9 +673,6 @@ def init_linear(input_linear):
 
 
 def init_lstm(input_lstm):
-    """
-    Initialize lstm
-    """
     for ind in range(0, input_lstm.num_layers):
         weight = eval('input_lstm.weight_ih_l' + str(ind))
         bias = np.sqrt(6.0 / (weight.size(0) / 4 + weight.size(1)))

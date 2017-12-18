@@ -1,23 +1,12 @@
-"""
-.. module:: highway
-    :synopsis: highway network
- 
-.. moduleauthor:: Liyuan Liu
-"""
 
-import torch
 import torch.nn as nn
+
 import lmbilstmcrf.utils as utils
 
-class hw(nn.Module):
-    """Highway layers
 
-    args: 
-        size: input and output dimension
-        dropout_ratio: dropout ratio
-    """
-   
-    def __init__(self, size, num_layers = 1, dropout_ratio = 0.5):
+class hw(nn.Module):
+
+    def __init__(self, size, num_layers=1, dropout_ratio=0.5):
         super(hw, self).__init__()
         self.size = size
         self.num_layers = num_layers
@@ -32,24 +21,12 @@ class hw(nn.Module):
             self.gate.append(tmpgate)
 
     def rand_init(self):
-        """
-        random initialization
-        """
         for i in range(self.num_layers):
             utils.init_linear(self.trans[i])
             utils.init_linear(self.gate[i])
 
     def forward(self, x):
-        """
-        update statics for f1 score
 
-        args: 
-            x (ins_num, hidden_dim): input tensor
-        return:
-            output tensor (ins_num, hidden_dim)
-        """
-        
-        
         g = nn.functional.sigmoid(self.gate[0](x))
         h = nn.functional.relu(self.trans[0](x))
         x = g * h + (1 - g) * x
