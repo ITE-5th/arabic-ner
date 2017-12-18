@@ -24,7 +24,5 @@ class Locations(FeatureExtractor):
             nextword, nextpos = sentence[i + 1]
 
         return {
-            "loc": word in self.locations,
-            "prevloc": prevword in self.locations,
-            "nextloc": nextword in self.locations
+            "loc": word in self.locations
         }

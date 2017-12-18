@@ -2,7 +2,7 @@ from chunker.features_extractors.feature_extractor import FeatureExtractor
 
 
 class Organizations(FeatureExtractor):
-    def __init__(self, organizations="../data/locations"):
+    def __init__(self, organizations="../data/orgs"):
         with open(organizations) as f:
             lines = f.readlines()
 

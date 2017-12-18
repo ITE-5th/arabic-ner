@@ -1,3 +1,5 @@
+import pickle
+
 import nltk
 
 from chunker.chunkers.consecutive_np_chunker import ConsecutiveNPChunker
@@ -75,16 +77,33 @@ def convert_to_tree(data):
     return sents
 
 
+def load_tagged(train_path, test_path):
+    return pickle.load(open(train_path, 'rb')), pickle.load(open(test_path, 'rb'))
+
+
 if __name__ == "__main__":
-    # read sentences
-    # sents = read("../data/ANERCorp", from_index=2000, to_index=4000)
-    sents = read("../data/modified_ANERCorp", to_index=10000)
-    # sents = read("../data/ANERCorp", from_index=2000)
 
-    pos_tagger = PosTagger()
+    load_from_pickles = True
+    save_tagged = True
 
-    tagged_data = pos_tagger.tag(sents)
-    train_sents, test_sents = split_data(tagged_data)
+    if load_from_pickles:
+        train_sents, test_sents = load_tagged("./taggers/tagged_train", "./taggers/tagged_test")
+    else:
+
+        # read sentences
+        # sents = read("../data/ANERCorp", from_index=2000, to_index=4000)
+        sents = read("../data/modified_ANERCorp")
+        # sents = read("../data/ANERCorp", from_index=2000)
+
+        pos_tagger = PosTagger()
+
+        tagged_data = pos_tagger.tag(sents)
+        train_sents, test_sents = split_data(tagged_data)
+
+        if save_tagged:
+            pickle.dump(train_sents, open("./taggers/tagged_train", 'wb'))
+            pickle.dump(test_sents, open("./taggers/tagged_test", 'wb'))
+            exit(0)
 
     tree = convert_to_tree(test_sents)
     # output[1].draw()
