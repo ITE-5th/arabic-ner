@@ -15,5 +15,5 @@ class StopWords(FeatureExtractor):
         word, pos = sentence[i]
         return {
             "stop_word": word in self.stop_words,
-            "stop_word_tag": pos in self.stop_words_tags
+            "stop_word_pos": pos in self.stop_words_tags
         }

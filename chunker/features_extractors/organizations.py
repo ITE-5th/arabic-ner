@@ -10,17 +10,12 @@ class Organizations(FeatureExtractor):
         self.organizations = set(lines)
 
     def extract(self, sentence, i, history):
+        sentence, i, history = self.pad(sentence, i, history)
+
         word, pos = sentence[i]
 
-        if i == 0:
-            prevword, prevpos = "<START>", "<START>"
-        else:
-            prevword, prevpos = sentence[i - 1]
-
-        if i == len(sentence) - 1:
-            nextword, nextpos = "<END>", "<END>"
-        else:
-            nextword, nextpos = sentence[i + 1]
+        prevword, prevpos = sentence[i - 1]
+        nextword, nextpos = sentence[i + 1]
 
         return {
             "org": word in self.organizations,

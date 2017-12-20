@@ -10,17 +10,11 @@ class People(FeatureExtractor):
         self.people = set(lines)
 
     def extract(self, sentence, i, history):
+        sentence, i, history = self.pad(sentence, i, history)
+
         word, pos = sentence[i]
-
-        if i == 0:
-            prevword, prevpos = "<START>", "<START>"
-        else:
-            prevword, prevpos = sentence[i - 1]
-
-        if i == len(sentence) - 1:
-            nextword, nextpos = "<END>", "<END>"
-        else:
-            nextword, nextpos = sentence[i + 1]
+        prevword, prevpos = sentence[i - 1]
+        nextword, nextpos = sentence[i + 1]
 
         person = word in self.people
         next_person = nextword in self.people
@@ -28,8 +22,16 @@ class People(FeatureExtractor):
 
         return {
             "person": person,
+
             "prevperson": prev_person,
             "nextperson": next_person,
+
             "person+next": "%s+%s" % (person, next_person),
             "person+prev": "%s+%s" % (prev_person, person),
+
+            "person[:2]": word[:2],
+            "person[:-2]": word[:-2],
+
+            "person[:3]": word[:3] if len(word) > 3 else None,
+            "person[:-3]": word[:-3] if len(word) > 3 else None
         }

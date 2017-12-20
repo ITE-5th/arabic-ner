@@ -111,3 +111,5 @@ if __name__ == "__main__":
     composer = Composer([NPChunk(), Locations(), People(), Organizations(), StopWords()])
     chunker = ConsecutiveNPChunker(train_sents=train_sents, extractor=composer)
     print(chunker.evaluate(tree))
+
+    chunker.save("../pretrained/chunker")

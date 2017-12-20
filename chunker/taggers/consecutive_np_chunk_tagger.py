@@ -1,4 +1,5 @@
 import os
+import pickle
 
 import nltk
 
@@ -6,7 +7,7 @@ from chunker.features_extractors.feature_extractor import FeatureExtractor
 from chunker.features_extractors.npchunk import NPChunk
 
 
-class ConsecutiveNPChunkTagger(nltk.TaggerI):
+class ConsecutiveNPChunkTagger(nltk.ParserI):
     def __init__(self, train_sents, extractor: FeatureExtractor = NPChunk(), megam_path: str = None):
         train_set = []
         self.feature_extractor = extractor
@@ -26,7 +27,7 @@ class ConsecutiveNPChunkTagger(nltk.TaggerI):
                 train_set.append((featureset, tag))
                 history.append(tag)
 
-        self.classifier = nltk.MaxentClassifier.train(train_set, algorithm='megam', trace=0)
+        self.classifier = nltk.MaxentClassifier.train(train_set)
 
     def tag(self, sentence):
         history = []
@@ -37,3 +38,11 @@ class ConsecutiveNPChunkTagger(nltk.TaggerI):
             history.append(tag)
 
         return zip(sentence, history)
+
+    def save(self, path):
+        with open(path, 'wb') as f:
+            pickle.dump(self.classifier, f)
+
+    def load(self, path):
+        with open(path, 'rb') as f:
+            self.classifier = pickle.load(f)
